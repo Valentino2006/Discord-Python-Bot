@@ -3,6 +3,7 @@ import os
 import sys
 import datetime
 import random
+import subprocess
 from dotenv import load_dotenv
 from discord.ext import commands
 load_dotenv()
@@ -90,8 +91,91 @@ async def some_random_crazy_function(ctx) :
         await ctx.send(f"Algun error ocurrio ...{error}")
     finally :
         print(f"{ctx.author}")
+@bot.command(name="member_info", help="Mira la informacion de un miembro", brief="[Mira la informacion de un miembro]")
+async def some_function_random_ctx(ctx, member: discord.Member) :
+    try :
+        #member = discord.Member
+        #options =  member or ctx.author
+        activity = None or member.activity.name
+        user_info_embed = discord.Embed(colour=0xff00ff).set_author(name=f"{member} ~ {member.id}", icon_url=member.avatar_url)
+        user_info_embed.add_field(name=f"Entro a el servidor {ctx.guild}", value=member.joined_at)
+        user_info_embed.add_field(name="Roles", value=str(member.roles))
+        user_info_embed.add_field(name="Actividad", value=activity)
+        user_info_embed.add_field(name="Estado", value=member.status)
+        user_info_embed.add_field(name="Rol mas alto", value=member.top_role)
+        user_info_embed.add_field(name=f"Permisos en el servidor {ctx.guild}", value=member.guild_permissions)
+        user_info_embed.add_field(name="Estado Mobil", value=member.mobile_status)
+        user_info_embed.add_field(name="Estado Web", value=member.web_status)
+        user_info_embed.add_field(name="Estado de aplicacion de escritorio", value=member.desktop_status)
+        user_info_embed.add_field(name="Banderas Publicas", value=member.public_flags)
+        user_info_embed.add_field(name="Creo su cuenta de discord", value=member.created_at)
+        user_info_embed.add_field(name="Es alguien del sistema como Discord", value=member.system)
+        user_info_embed.set_thumbnail(url=member.avatar_url)
+        await ctx.send(embed=user_info_embed)
+        #await ctx.send(options.id)
+    except :
+        await ctx.send("Una excepcion ocurrio...")
+    finally : 
+        await ctx.send("Recuerda que si ocurrio una excepcion es porque algo fallo.")
+@bot.command(name="role_info", help="Muestra informacion de un rol, requiere mencion", brief="[Muestra informacion de un rol]")
+async def role_info_command_function(ctx, role: discord.Role):
+    if role.mentionable == False:
+        mentionable_latin = "No"
+    elif role.mentionable == True:
+        mentionable_latin = "Si"
+        pass
+    role_info_command_embed = discord.Embed(colour=0xff00ff).set_author(name=f"{role.name} ~ {role.id}")
+    role_info_command_embed.add_field(name="Rol creado el", value=role.created_at)
+    role_info_command_embed.add_field(name="Colores del rol", value=f"{role.colour} ~ {role.color}")
+    role_info_command_embed.add_field(name=f"MIembros del servidor {ctx.guild} con el rol", value=len(role.members))
+    role_info_command_embed.add_field(name="Posicion del rol", value=role.position)
+    role_info_command_embed.add_field(name="Permisos del rol", value=role.permissions)
+    role_info_command_embed.add_field(name="Mencionable por los usuario(general)", value=mentionable_latin)
+    await ctx.send(embed=role_info_command_embed)
+# Comando publicado en portalmybot.com
+@bot.command(name="say", help="Mando un mensaje segun los argumentos que pongas despues del comando", brief="[Digo lo que tu dices]") # Utilizaremos discord.ext.commands para este comando, necesitaran poner un nombre, ayuda, breve ayuda
+async def say_command_function(ctx): # Funcion asincrona con cualquier nombre, parametro ctx (context)
+    mentions = ("@everyone", "@here") # En la variable mentions guaradara una tupla con cadenas (str tuple)
+    var_1 = ctx.message.content # En la variable var_1 guardara lo que contiene el mensaje que se envio 
+    if var_1.startswith(mentions) or var_1.endswith(mentions) or var_1 == f"d!say {mentions}" : # Si var_1 comienza o termina con mentions o var_1 es igual a <prefiz>say mentions, cuando de true la condicion se pasara al siguiente bloque de codigo
+        await ctx.send("No puedes mencionar a everyone ni a here") # Enviamos un mensaje
+    else : # Si no dio true la sentencia de arriba, pasaremos a este bloque de codigo llegando a el fin
+        await ctx.send(ctx.message.content) # Enviamos finalmente lo que contiene el mensaje
+@bot.command(name="unban", help="Remueve el baneo de un miembro baneado, es necesario su ID del usuario baneado", brief="[Remueve un baneo]")
+async def some_random_function_unban(ctx, args1):
+    ctx_member = await bot.fetch_user(args1)
+    await ctx.guild.unban(ctx_member)
+    await ctx.send(f"El miembro <@{ctx_member}> ~ {ctx_member.id} fue removido de la lista de baneados, ya puede ingresar de nuevo al servidor")
+@bot.command(name="exec", help="Ejecuta comandos en terminales bash / shell con este comando", brief="[Ejecuta comandos en la consola]")
+async def exec_command_function_random(ctx, args1):
+    try:
+        res = subprocess.call(args1, shell=False)
+        await ctx.send(res)
+    except:
+        await ctx.send("Una excepcion ocurrio...")
+    finally:
+        await ctx.send("Output: ✅")
+@bot.command(name="emoji_info", help="Muestra la informacion detallada de un emoji, requiere introducir el emoji en el 1er argumento", brief="[Muestra informacion detallada de un emoji]")
+async def some_random_function_emoji_info(ctx, emoji: discord.Emoji):
+    true_false = {
+        True: "Si",
+        False: "No",
+    }
+    print(emoji.url)
+    emoji_info_embed = discord.Embed(colour=0xff00ff).set_author(name=f"{emoji.name} ~ {emoji.id}", icon_url=emoji.url).set_thumbnail(url=emoji.url)
+    emoji_info_embed.add_field(name="Animado", value=true_false[emoji.animated])
+    emoji_info_embed.add_field(name="Creado el", value=emoji.created_at)
+    emoji_info_embed.add_field(name="Administrado por alguna integracion por Twitch", value=true_false[emoji.managed])
+    emoji_info_embed.add_field(name="Requiere :: por el cliente", value= true_false[emoji.require_colons])
+    emoji_info_embed.add_field(name="Usalo de la siguiente manera", value=f"`<:{emoji.name}:{emoji.id}>`") 
+    emoji_info_embed.add_field(name="Disponible", value=true_false[emoji.available])
+    await ctx.send(embed=emoji_info_embed)
+@bot.command(name="ascii", help="Devuelve un string convertido a una representacion imprimible de un objeto", brief="[Devuelve una version imprimible del texto]")
+async def some_random_ascii_function(ctx, args1):
+    cifrado = ascii(args1)
+    await ctx.send(f"Cifrado correcto={cifrado}")
 @bot.event
-async def on_ready() :
+async def on_ready():
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     print(f"    Nombre de usuario: {bot.user}")
     print(f"    ID del usuario: {bot.user.id}")
